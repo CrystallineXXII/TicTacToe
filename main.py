@@ -1,213 +1,114 @@
-import pygame
-import sys
-
-pygame.init()
-SCREENSIZE = (300,300)
-screen = pygame.display.set_mode(SCREENSIZE)
-pygame.display.set_caption('TicTacToe')
-icon = pygame.image.load('icon.png').convert_alpha()
-pygame.display.set_icon(icon)
-l = ['×','○']
-chance = '×'
-clicked = bool()
-p1, p2, p3, p4, p5, p6, p7, p8, p9 = 0,0,0,0,0,0,0,0,0
-pos_list = ['','','','','','','','','']
+import pygame as pg
+import pickle as p
+import socket
+pg.init()
 
 
-def draw_lines():
-    pygame.draw.line(screen,'#ffffff',(100,0),(100,300),10)
-    pygame.draw.line(screen,'#ffffff',(200,0),(200,300),10)
-    pygame.draw.line(screen,'#ffffff',(0,100),(300,100),10)
-    pygame.draw.line(screen,'#ffffff',(0,200),(300,200),10)
+clock = pg.time.Clock()
+screen = pg.display.set_mode((300,300))
+pg.display.set_caption('TicTacToe')
 
-def click_event():
-    global clicked
-    if pygame.mouse.get_pressed()[0]and clicked == False:
-        clicked = True
-        return True
-        
-    if pygame.mouse.get_pressed()[0] == 0:
-        clicked = False
-    return False
+font = pg.font.Font('Comfortaa.ttf', 50)
+smolfont = pg.font.Font('Comfortaa.ttf', 20)
+class Cell():
+	def __init__(self,x,y):
 
-def cheq_pos():
-    global p1,p2,p3,p4,p5,p6,p7,p8,p9
-    mouse = pygame.mouse.get_pos()
-    if (mouse[1] > 0) and (mouse[1] < 100):
-        if (((mouse[0] >  -1) and (mouse[0] < 100)) and pygame.mouse.get_pressed()[0])and p1 == False:
-            p1 = True
-            
-            return 1
-        if (((mouse[0] >  100) and (mouse[0] < 200)) and pygame.mouse.get_pressed()[0])and p2 == False:
-            
-            p2 = True
-            
-            return 2
-        if (((mouse[0] >  200) and (mouse[0] < 300)) and pygame.mouse.get_pressed()[0])and p3 == False:
+		self.x = x
+		self.y = y
 
-            p3 = True
-            
-            return 3
-            
-    if (mouse[1] > 100) and (mouse[1] < 200):
-        if (((mouse[0] >  -1) and (mouse[0] < 100)) and pygame.mouse.get_pressed()[0])and p4 == False:
+		self.state = 0
+		self.surf = pg.Surface((100,100))
 
-            p4 = True
-            
-            return 4
-        if (((mouse[0] >  100) and (mouse[0] < 200)) and pygame.mouse.get_pressed()[0])and p5 == False:
+	def update(self,screen,font:pg.font.Font):
+		l = ['','x','o']
 
-            p5 = True
-            
-            return 5
-        if (((mouse[0] >  200) and (mouse[0] < 300)) and pygame.mouse.get_pressed()[0])and p6 == False:
-
-            p6 = True
-            
-            return 6
-
-    if (mouse[1] > 200) and (mouse[1] < 300):
-        if (((mouse[0] >  -1) and (mouse[0] < 100)) and pygame.mouse.get_pressed()[0])and p7 == False:
-
-            p7 = True
-            return 7
-        if (((mouse[0] >  100) and (mouse[0] < 200)) and pygame.mouse.get_pressed()[0])and p8 == False:
-
-            p8 = True
-            return 8
-        if (((mouse[0] >  200) and (mouse[0] < 300)) and pygame.mouse.get_pressed()[0]) and p9 == False:
-            
-            p9 = True
-            return 9
-
-def add_symbol(cellno):
-    global pos_list,chance
-    if cellno != None:
-       index = cellno - 1
-       pos_list[index] = chance
-       l.reverse()
-       chance = l[0]
-       
-
-def render():
-    global pos_list
-    class CellClass():
-        def __init__(self,pos,x,y):
-            self.label = pygame.font.SysFont('Monospace',100).render(pos_list[pos],1,'#ffffff')
-            self.xpos = x
-            self.ypos = y
-
-        def draw(self):
-             screen.blit(self.label,(self.xpos ,self.ypos ))
-    p = 20
-    q = -3
-    cell1 = CellClass(0,p,q)
-    cell2 = CellClass(3,p,q+100)
-    cell3 = CellClass(6,p,q+200)
-    cell4 = CellClass(1,p+100,q)
-    cell5 = CellClass(4,p+100,q+100)
-    cell6 = CellClass(7,p+100,q+200)
-    cell7 = CellClass(2,p+200,q)
-    cell8 = CellClass(5,p+200,q+100)
-    cell9 = CellClass(8,p+200,q+200)
-
-    cell1.draw()
-    cell2.draw()
-    cell3.draw()
-    cell4.draw()
-    cell5.draw()
-    cell6.draw()
-    cell7.draw()
-    cell8.draw()
-    cell9.draw()
-
-def win_check():
-    if (pos_list[0]==pos_list[1]==pos_list[2]=='×')\
-        or\
-        (pos_list[0]==pos_list[1]==pos_list[2]=='○'):
-
-        pygame.draw.line(screen,'#fcf803',(0,50),(300,50),8)
-        return True
-
-    
-    elif (pos_list[3]==pos_list[4]==pos_list[5]=='×')\
-        or\
-        (pos_list[3]==pos_list[4]==pos_list[5]=='○'):
-
-        pygame.draw.line(screen,'#fcf803',(0,150),(300,150),8)
-        return True
+		label = font.render(l[self.state],1,'white').convert_alpha()
+		label_rect = label.get_rect(center=(50,50))
+		self.surf.blit(label,label_rect)
+		pg.draw.rect(self.surf,(255,255,255),(0,0,100,100),2)
+		screen.blit(self.surf,(self.x,self.y))
 
 
-    elif (pos_list[6]==pos_list[7]==pos_list[8]=='×')\
-        or\
-        (pos_list[6]==pos_list[7]==pos_list[8]=='○'):
+	def click(self,player):
 
-        pygame.draw.line(screen,'#fcf803',(0,250),(300,250),8)
-        return True
+		if self.state == 0:
+			self.state = int(player) + 1
+			return True
 
+		
+class Board(): 
+	def __init__(self):
+		self.cells = []
+		for i in range(3):
+			for j in range(3):
+				self.cells.append(Cell(i*100,j*100))
 
-    elif (pos_list[0]==pos_list[3]==pos_list[6]=='×')\
-        or\
-        (pos_list[0]==pos_list[3]==pos_list[6]=='○'):
+		self.player = True
 
-        pygame.draw.line(screen,'#fcf803',(50,0),(50,300),8)
-        return True
+	def update(self,screen):
+		for cell in self.cells:
+			cell.update(screen,font)
 
-    
-    elif (pos_list[1]==pos_list[4]==pos_list[7]=='×')\
-        or\
-        (pos_list[1]==pos_list[4]==pos_list[7]=='○'):
+		if self.check():
+			return self.check()
 
-        pygame.draw.line(screen,'#fcf803',(150,0),(150,300),8)
-        return True
+		return 0
 
-    
-    elif (pos_list[2]==pos_list[5]==pos_list[8]=='×')\
-        or\
-        (pos_list[2]==pos_list[5]==pos_list[8]=='○'):
-
-        pygame.draw.line(screen,'#fcf803',(250,0),(250,300),8)
-        return True
-
-
-    elif (pos_list[2]==pos_list[4]==pos_list[6]=='×')\
-        or\
-        (pos_list[2]==pos_list[4]==pos_list[6]=='○'):
-
-        pygame.draw.line(screen,'#fcf803',(300,0),(0,300),8)
-        return True
-
-
-    elif (pos_list[0]==pos_list[4]==pos_list[8]=='×')\
-        or\
-        (pos_list[0]==pos_list[4]==pos_list[8]=='○'):
-
-        pygame.draw.line(screen,'#fcf803',(300,300),(0,0),8)
-        return True
-
-    else:
-        return False
+	def check(self):
+		for i in range(3):
+			if self.cells[i*3].state == self.cells[i*3+1].state == self.cells[i*3+2].state != 0:
+				return self.cells[i*3].state
+			if self.cells[i].state == self.cells[i+3].state == self.cells[i+6].state != 0:
+				return self.cells[i].state
+		if self.cells[0].state == self.cells[4].state == self.cells[8].state != 0:
+			return self.cells[0].state
+		if self.cells[2].state == self.cells[4].state == self.cells[6].state != 0:
+			return self.cells[2].state
+		
+		if all([cell.state != 0 for cell in self.cells]):
+			return 3
+		return 0
+	
 
 def main():
-    global p1,p2,p3,p4,p5,p6,p7,p8,p9
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-        screen.fill('#000000')
-        draw_lines()
-        if click_event():
-            add_symbol(cheq_pos())
-
-        render()
-        if win_check():
-            p1,p2,p3,p4,p5,p6,p7,p8,p9 = 1,1,1,1,1,1,1,1,1
-
-        pygame.display.flip()
+	def event_handler():
+		for event in pg.event.get():
+			if event.type == pg.QUIT:
+				pg.quit()
+				exit()
+			if event.type == pg.MOUSEBUTTONDOWN:
+				x,y = event.pos
+				for cell in board.cells:
+					if cell.x < x < cell.x + 100 and cell.y < y < cell.y + 100:
+						if cell.click(board.player):
+							board.player = not board.player
 
 
 
-main()
+	board = Board()
 
+	while True:
+		clock.tick(60)
+		event_handler()
+		screen.fill((0,0,0))
+		result = board.update(screen)
+		if result:
+			surf = pg.Surface((300,300))
+			surf.set_alpha(128)
+			surf.fill((0,0,0))
+			screen.blit(surf,(0,0))
+			label = font.render(f'{[0,"x wins","o wins","Draw"][result]}!',1,'white')
+			label_rect = label.get_rect(center=(150,150))
+			screen.blit(label,label_rect)
+			label = smolfont.render('<SPACE> to continue!',1,'orange')
+			label_rect = label.get_rect(center=(150,250))
+			screen.blit(label,label_rect)
+
+			if pg.key.get_pressed()[pg.K_SPACE]:
+				return main
+		pg.display.flip()
+
+if __name__ == '__main__':
+	active = main
+	while True:
+		active = active()
