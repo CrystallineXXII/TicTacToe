@@ -6,4 +6,4 @@ This is a TicTacToe game made in Python. It is a two player game, where the play
 
 ## How to play
 
-To play the game, run the file `tictactoe.py` 
+To play the game, run the file `main.py` 
